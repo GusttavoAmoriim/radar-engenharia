@@ -4,7 +4,7 @@ import logging
 import time
 from datetime import datetime
 
-from . import clock, collectors, config, database, gazettes, kv, verification
+from . import clock, collectors, config, database, gazettes, kv, portals, verification
 from . import repository as repo
 
 logging.basicConfig(level=logging.INFO)
@@ -44,6 +44,8 @@ def main():
         LOG.info('%s cartões antigos de diários ocultados (não eram abertura)', stale)
     if repo.scrub_personal_data():
         LOG.info('Dados pessoais de diários antigos removidos')
+    if portals.attach_existing():
+        LOG.info('Cartões de diários ligados ao portal oficial da prefeitura')
     LOG.info('Worker started: official only, every 3h America/Sao_Paulo')
     try:
         validated, failed = verification.auto_verify()

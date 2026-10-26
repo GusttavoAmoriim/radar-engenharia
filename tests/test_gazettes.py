@@ -1,6 +1,6 @@
 import json
 
-from app import evidence, gazettes, sources
+from app import evidence, gazettes, sources, textnorm
 from app import repository as repo
 
 SOURCE = sources.Source(
@@ -61,8 +61,9 @@ def test_finds_engineering_contests_in_municipal_gazettes(monkeypatch):
     calls = fake_api(monkeypatch, RESPONSE)
     found, added, ok = gazettes.scan_source(SOURCE)
     assert (found, added, ok) == (2, 2, True)
-    assert len(calls) == len(gazettes.TERMS) and all(data_api for _, data_api in calls)
+    assert len(calls) == len(gazettes.TERMS) * len(gazettes.KINDS) and all(data_api for _, data_api in calls)
     assert 'querystring=%22concurso+p%C3%BAblico%22+%22engenheiro+civil' in calls[0][0]
+    assert any('%22processo+seletivo%22+%22engenharia+civil' in url for url, _ in calls)
     assert 'published_since=2026-09-24' in calls[0][0] and '%7C' not in calls[0][0] and '%28' not in calls[0][0]
     items = {i['agency']: i for i in repo.query_opportunities()}
     campinas = items['Campinas/SP']
@@ -114,7 +115,7 @@ def test_one_failing_search_keeps_the_others(monkeypatch):
     found, added, ok = gazettes.scan_source(SOURCE)
     assert (found, added, ok) == (2, 2, False)
     error = repo.source_health()[0]['error']
-    assert error.startswith('Cobertura PARCIAL: 1 de 4') and 'for url' not in error
+    assert error.startswith('Cobertura PARCIAL: 2 de 8') and 'for url' not in error
 
 
 APPOINTMENT = (
@@ -183,3 +184,31 @@ def test_old_cards_with_blocked_excerpts_are_hidden_but_user_marked_ones_are_kep
 
 def test_role_keeps_its_closing_parenthesis():
     assert gazettes.role_of('Especialidade Engenharia (graduação civil), vagas') == 'Engenharia (graduação civil)'
+
+
+def test_teaching_post_keeps_professor_in_the_role():
+    text = 'Processo seletivo para Professor de Engenharia Civil, graduação exigida. Inscrições abertas.'
+    assert gazettes.role_of(text) == 'Professor – Engenharia Civil'
+    assert gazettes.role_of('Processo seletivo para Engenheiro Civil, edital de abertura.') == 'Engenheiro Civil'
+    assert gazettes.relevant(text + ' Edital de abertura.')
+    assert textnorm.is_target('Professor – Engenharia Civil')
+
+
+def test_known_portal_is_attached_to_gazette_cards(monkeypatch):
+    from app import portals
+
+    portal = 'https://concursos.curitiba.pr.gov.br/listar/1/2'
+    assert portals.for_territory('4106902') == portal
+    assert portals.for_gazette_url('https://data.queridodiario.ok.org.br/4106902/2026-10-09/x.pdf') == portal
+    assert portals.for_territory('9999999') is None
+    old = repo.upsert(
+        dict(
+            title='Curitiba',
+            position='Engenheiro Civil',
+            source='Querido Diário — x',
+            fingerprint='cwb',
+            official_url='https://data.queridodiario.ok.org.br/4106902/2026-10-09/x.pdf',
+        )
+    )[0]
+    assert portals.attach_existing() == 1
+    assert repo.fetch_one(old)['official_url'] == portal

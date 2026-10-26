@@ -27,22 +27,29 @@ def test_page_lists_open_cards_escaped_and_hides_dismissed():
     assert 'Oculto' not in page and 'Engenheiro Civil' in page
 
 
-def test_telegram_first_run_sends_summary_then_only_new_alerts(monkeypatch):
+def test_first_run_sends_one_summary_only(monkeypatch):
     sent = []
     monkeypatch.setattr(telegram, 'configured', lambda: True)
     monkeypatch.setattr(telegram, 'send', lambda text: sent.append(text))
-    one = card(fp='a')
-    repo.add_alert('k1', 'new', 'Primeiro aviso', one)
-    assert cloud.notify() == 0 and 'ativo' in sent[0]
-    two = card(title='Outra', fp='b')
-    repo.add_alert('k2', 'new', 'Aviso novo', two)
-    gone = card(title='Descartado', fp='c')
-    repo.add_alert('k3', 'new', 'Aviso descartado', gone)
-    repo.update_opportunity(gone, {'dismissed': 1})
-    assert cloud.notify() == 1
-    assert 'Aviso novo' in sent[1] and 'descartado' not in sent[1] and 'Primeiro' not in sent[1]
-    assert cloud.notify() == 0 and len(sent) == 2
+    card(fp='a')
+    assert cloud.notify() == 1 and '1 concurso na lista' in sent[0]
+    assert cloud.notify() == 0 and len(sent) == 1
     assert kv.get('telegram_started') == '1'
+
+
+def test_alerts_of_discarded_cards_are_not_sent(monkeypatch):
+    from app import config, notifications
+
+    sent = []
+    monkeypatch.setattr(config, 'telegram', lambda: {'token': 't', 'chat_id': 'c'})
+    monkeypatch.setattr(notifications, '_telegram', lambda text: sent.append(text) or True)
+    live, gone = card(fp='a'), card(title='Velho', fp='b')
+    repo.add_alert('k1', 'new', 'Aviso útil', live)
+    repo.add_alert('k2', 'new', 'Aviso descartado', gone)
+    repo.update_opportunity(gone, {'dismissed': 1})
+    assert notifications.dispatch()['sent'] == 1
+    assert 'Aviso útil' in sent[0] and 'descartado' not in sent[0]
+    assert notifications.dispatch()['sent'] == 0
 
 
 def test_notify_does_nothing_without_telegram(monkeypatch):

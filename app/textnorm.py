@@ -74,3 +74,11 @@ def is_temporary(text):
     These are not "concursos públicos": the contract has a term and there is no stability.
     """
     return bool(_TEMPORARY.search(fold(text)))
+
+
+_TEACHING = re.compile(r'\b(?:professor(?:a|es|as)?|docente|magisterio)\b')
+
+
+def is_teaching(text):
+    """True when the text names a teaching post (professor, docente): same engineering degree, different job."""
+    return bool(_TEACHING.search(fold(text)))

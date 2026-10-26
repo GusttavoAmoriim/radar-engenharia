@@ -76,7 +76,14 @@ def build():
     now = datetime.now(clock.TZ).strftime('%d/%m/%Y %H:%M')
     name = esc(config.app_name())
     cards = ''.join(card(i) for i in items) or '<p class="empty">Nenhum concurso de engenharia aberto no momento.</p>'
-    return PAGE.format(name=name, when=now, count=len(items), problems=problems, cards=cards)
+    return PAGE.format(
+        name=name,
+        when=now,
+        count=len(items),
+        word='concurso' if len(items) == 1 else 'concursos',
+        problems=problems,
+        cards=cards,
+    )
 
 
 PAGE = """<!doctype html>
@@ -96,7 +103,7 @@ dl{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8p
 a{{color:var(--link)}}.links{{margin:.3em 0 0}}.empty{{color:var(--mute)}}
 </style></head><body><main>
 <h1>{name}</h1>
-<p class="meta">Atualizado em {when} (Brasília) · {count} concursos · {problems} fontes com problema. Só fontes oficiais; confira sempre o edital.</p>
+<p class="meta">Atualizado em {when} (Brasília) · {count} {word} · {problems} fontes com problema. Só fontes oficiais; confira sempre o edital.</p>
 <input id="q" type="search" placeholder="Filtrar por cidade, estado ou cargo" aria-label="Filtrar">
 <div id="list">{cards}</div>
 <script>

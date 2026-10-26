@@ -15,7 +15,7 @@ import re
 from datetime import timedelta
 from urllib.parse import urlencode
 
-from . import clock, evidence, polite, textnorm
+from . import clock, evidence, polite, portals, textnorm
 from . import repository as repo
 
 LOG = logging.getLogger('radar.gazettes')
@@ -27,6 +27,8 @@ TERMS = (
     'engenharia civil',
     'engenharia mecânica',
 )
+# Teaching and temporary selections are announced as "processo seletivo", not "concurso público".
+KINDS = ('concurso público', 'processo seletivo')
 LOOKBACK_DAYS = 21
 PAGE_SIZE = 20
 MAX_NEW_PER_RUN = 25
@@ -126,7 +128,11 @@ def role_of(text):
             role = role + text[match.end() : close + 1] if close != -1 else role.rsplit('(', 1)[0].strip(' -–')
         # Same rule as everywhere else: "Engenheiro ... Polícia Civil" is not a civil engineer.
         if textnorm.is_target(role):
-            return role[:1].upper() + role[1:]
+            role = role[:1].upper() + role[1:]
+            # "Professor de Engenharia Civil" / "Professor ... graduação em Engenharia Civil": keep the teaching post.
+            if textnorm.is_teaching(text[max(0, match.start() - 80) : match.start()]):
+                return f'Professor – {role}'
+            return role
     return ''
 
 
@@ -145,15 +151,19 @@ def official_links(text):
 def search_urls(source):
     since = (clock.today() - timedelta(days=LOOKBACK_DAYS)).isoformat()
     base = source.url.split('?', 1)[0]
-    for term in TERMS:
-        params = {
-            'querystring': f'"concurso público" "{term}"',
-            'published_since': since,
-            'excerpt_size': 500,
-            'number_of_excerpts': 2,
-            'size': PAGE_SIZE,
-        }
-        yield base + '?' + urlencode(params)
+    for kind in KINDS:
+        for term in TERMS:
+            yield base + '?' + urlencode(search_params(kind, term, since))
+
+
+def search_params(kind, term, since):
+    return {
+        'querystring': f'"{kind}" "{term}"',
+        'published_since': since,
+        'excerpt_size': 500,
+        'number_of_excerpts': 2,
+        'size': PAGE_SIZE,
+    }
 
 
 def fetch_gazettes(source, session):
@@ -185,7 +195,7 @@ def scan_source(source, session=None):
     found = added = 0
     try:
         results, errors = fetch_gazettes(source, session)
-        if errors and len(errors) == len(TERMS):
+        if errors and len(errors) == len(TERMS) * len(KINDS):
             raise ValueError(f'API do Querido Diário falhou em todas as buscas: {errors[0]}')
         for gazette in results:
             uf = str(gazette.get('state_code') or '').upper()
@@ -218,7 +228,9 @@ def scan_source(source, session=None):
                 'type': 'pss' if temporary else 'concurso',
                 'state': uf if re.fullmatch(r'[A-Z]{2}', uf) else '',
                 'source': source.name,
-                'official_url': links[0] if links else gazette_url,
+                'official_url': links[0]
+                if links
+                else (portals.for_territory(gazette.get('territory_id')) or gazette_url),
                 'notice_url': next((u for u in links if u.lower().endswith('.pdf')), ''),
                 'confidence': 'discovery',
                 'reviewed': 0,
@@ -245,7 +257,7 @@ def scan_source(source, session=None):
                 sid,
                 found,
                 added,
-                error=f'Cobertura PARCIAL: {len(errors)} de {len(TERMS)} buscas falharam ({errors[0]})',
+                error=f'Cobertura PARCIAL: {len(errors)} de {len(TERMS) * len(KINDS)} buscas falharam ({errors[0]})',
             )
             return found, added, False
         repo.scan_finish(sid, found, added)

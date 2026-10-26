@@ -1,0 +1,6 @@
+# Portal oficial onde cada prefeitura publica os editais de seus concursos e processos seletivos.
+# Chave: código IBGE do município (aparece no endereço do diário no Querido Diário).
+# Quando o radar acha um concurso desse município no diário, ele passa a procurar o edital neste portal.
+# Só endereços oficiais (gov.br, jus.br, leg.br ou edu.br) são aceitos. Para acrescentar uma cidade,
+# copie uma linha e troque o código e o endereço.
+4106902: https://concursos.curitiba.pr.gov.br/listar/1/2   # Curitiba/PR

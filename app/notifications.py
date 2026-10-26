@@ -10,6 +10,7 @@ from email.message import EmailMessage
 import requests
 
 from . import config, database
+from . import repository as repo
 
 
 def _email(subject, body):
@@ -59,9 +60,21 @@ def _deliver(title, lines, subject):
     return sent_to
 
 
+def _obsolete(alert):
+    item = repo.fetch_one(alert['opportunity_id']) if alert.get('opportunity_id') else None
+    return bool(item and (item.get('dismissed') or item.get('status') == 'closed'))
+
+
 def dispatch():
     with database.connection() as db:
         pending = [dict(r) for r in db.execute('SELECT * FROM alerts WHERE notified=0 ORDER BY id LIMIT 100')]
+    stale = [a for a in pending if _obsolete(a)]
+    if stale:
+        # Found and then discarded (old contest, ranking list, closed registration): not worth a message.
+        with database.DB_LOCK, database.connection() as db:
+            db.executemany('UPDATE alerts SET notified=1 WHERE id=?', [(a['id'],) for a in stale])
+            db.commit()
+        pending = [a for a in pending if a not in stale]
     if not pending:
         return {'sent': 0, 'reason': 'no pending events'}
     lines = [f'• {a["text"]}' for a in pending]

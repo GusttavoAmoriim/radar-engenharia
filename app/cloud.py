@@ -8,46 +8,32 @@ import logging
 import sys
 from pathlib import Path
 
-from . import collectors, database, gazettes, kv, staticsite, telegram, verification
+from . import collectors, database, gazettes, kv, portals, staticsite, telegram, verification
 from . import repository as repo
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger('radar.cloud')
-WORTH = ('new', 'new-gazette', 'site_changed')
 
 
 def tidy():
     repo.prune_candidates()
     gazettes.dismiss_stale_discoveries()
     repo.scrub_personal_data()
+    portals.attach_existing()
 
 
 def notify():
-    """Telegram: one message with what is new since the last run. The first run only sends a summary."""
-    if not telegram.configured():
-        LOG.info('Telegram não configurado: avisos só no painel')
+    """Telegram: the alerts themselves go out through notifications.dispatch (run by the collector).
+
+    Here, only a one-time message on the first run, so you know the channel works.
+    """
+    if not telegram.configured() or kv.get('telegram_started'):
         return 0
-    alerts = repo.get_alerts(200)
-    last = int(kv.get('telegram_last_alert') or 0)
-    top = max((a['id'] for a in alerts), default=0)
-    if not kv.get('telegram_started'):
-        kv.put('telegram_started', '1')
-        kv.put('telegram_last_alert', str(top))
-        open_now = [i for i in repo.query_opportunities(include_dismissed=False) if i['status'] != 'closed']
-        telegram.send(f'Radar de engenharia ativo. {len(open_now)} concursos na lista. Você será avisado dos novos.')
-        return 0
-    lines = []
-    for alert in sorted((a for a in alerts if a['id'] > last), key=lambda a: a['id']):
-        if alert['kind'] not in WORTH:
-            continue
-        item = repo.fetch_one(alert['opportunity_id']) if alert.get('opportunity_id') else None
-        if item and (item.get('dismissed') or item['status'] == 'closed'):
-            continue  # found, then discarded (old contest, ranking list...): not worth a message
-        lines.append('• ' + alert['text'])
-    kv.put('telegram_last_alert', str(top))
-    if lines:
-        telegram.send('Radar de engenharia — novidades:\n\n' + '\n\n'.join(lines[:10]))
-    return len(lines)
+    kv.put('telegram_started', '1')
+    count = len([i for i in repo.query_opportunities(include_dismissed=False) if i['status'] != 'closed'])
+    word = 'concurso' if count == 1 else 'concursos'
+    telegram.send(f'Radar de engenharia ativo: {count} {word} na lista. Você será avisado dos novos.')
+    return 1
 
 
 def main(argv):
