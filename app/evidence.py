@@ -48,6 +48,11 @@ EDU_HOSTS = (
     'unifesp.br',
     'ufabc.edu.br',
     'ufscar.edu.br',
+    # Maranhão
+    'ifma.edu.br',
+    'ufma.br',
+    'uema.br',
+    'uemasul.edu.br',
 )
 # Public data APIs that are allowed to be queried but are never proof of an edital.
 DATA_APIS = frozenset({'api.queridodiario.org.br'})
@@ -67,7 +72,7 @@ def official_host(host):
     host = (host or '').lower().rstrip('.')
     return (
         host in ORGANIZERS
-        or host.endswith(('.gov.br', '.jus.br', '.leg.br'))
+        or host.endswith(('.gov.br', '.jus.br', '.leg.br', '.mil.br'))
         or any(host == ed or host.endswith('.' + ed) for ed in EDU_HOSTS)
     )
 

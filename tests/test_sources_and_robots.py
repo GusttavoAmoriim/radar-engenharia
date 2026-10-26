@@ -31,7 +31,7 @@ def clean_robots_cache():
 
 def test_repository_sources_file_is_valid():
     loaded = sources.load(ROOT / 'sources.yaml')
-    assert len(loaded) == 7
+    assert len(loaded) == 11
     assert all(s.url.startswith('https://') for s in loaded)
     assert any(s.mode == 'gazette_search' for s in loaded)
 
@@ -109,3 +109,17 @@ def test_unreadable_robots_is_retried_soon_not_cached_for_a_day(monkeypatch):
     assert robots.parser_for('x.gov.br', now=1000.0 + 300) is None  # still cached for a few minutes
     assert robots.parser_for('x.gov.br', now=1000.0 + 700) is not None  # then tried again
     robots.clear()
+
+
+def test_maranhao_and_military_hosts_are_official():
+    from app import evidence
+
+    for url in (
+        'https://portal.ifma.edu.br/concursos/',
+        'https://portalpadrao.ufma.br/progep',
+        'https://www.eb.mil.br/concursos',
+        'https://www.uema.br/editais',
+    ):
+        assert evidence.official_url(url), url
+    assert not evidence.official_url('https://ufma.br.evil.com/x')
+    assert not evidence.official_url('https://www.fakeifma.edu.br/x')

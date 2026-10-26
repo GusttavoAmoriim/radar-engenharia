@@ -29,6 +29,26 @@ sources:
     url: https://api.queridodiario.org.br/gazettes
     mode: gazette_search
     agency: Diários oficiais (Querido Diário)
+  # Maranhão / São Luís e órgãos federais. Os endereços abaixo NÃO foram abertos em teste: se uma fonte aparecer
+  # em "Falha" na aba Fontes, o endereço mudou; abra o site oficial, copie o endereço da página de editais e troque aqui.
+  - name: IFMA — concursos
+    url: https://portal.ifma.edu.br/concursos/
+    mode: notice_index
+    uf: MA
+    agency: IFMA
+  - name: UFMA — editais (PROGEP)
+    url: https://portalpadrao.ufma.br/progep
+    mode: notice_index
+    uf: MA
+    agency: UFMA
+  - name: Cebraspe — concursos
+    url: https://www.cebraspe.org.br/concursos/
+    mode: notice_index
+    agency: Cebraspe
+  - name: DNIT — concursos e seleções
+    url: https://www.gov.br/dnit/pt-br/acesso-a-informacao/concursos-e-selecoes
+    mode: notice_index
+    agency: DNIT
   # Exemplos para acrescentar (confirme o endereço oficial antes). 'details' acompanha UM edital já publicado;
   # 'watch' vigia mudanças numa página. Uma banca nova de catálogo exige regra em app/collectors.py (looks_detail).
   # - name: Prefeitura de Exemplo — concursos
