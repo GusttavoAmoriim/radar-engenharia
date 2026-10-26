@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f5f7fb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0a111f" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Concursos públicos de engenharia civil e mecânica a partir de editais oficiais, com prova documental.">
+  <title>__APP_NAME__ · Concursos de Engenharia</title>
+  <meta name="app-name" content="__APP_NAME__">
+  <link rel="icon" href="/static/img/brand-symbol.png?v=__VERSION__" type="image/png">
+  <link rel="alternate icon" href="/favicon.ico?v=__VERSION__">
+  <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png?v=__VERSION__">
+  <link rel="stylesheet" href="/static/css/app.css?v=__VERSION__">
+  <script src="/static/js/theme-boot.js?v=__VERSION__"></script>
+  <script type="module" src="/static/js/main.js?v=__VERSION__"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
+
+  <!-- Login -->
+  <div id="loginView" class="login hidden">
+    <form id="loginForm" class="login-card" novalidate>
+      <a class="brand" href="/">
+        <img src="/static/img/brand-symbol.png?v=__VERSION__" width="38" height="38" alt="">
+        <span><strong>__APP_NAME__</strong><small>Engenharia civil e mecânica</small></span>
+      </a>
+      <div>
+        <h1>Área do administrador</h1>
+        <p class="muted">Use a senha do administrador. Se o MFA estiver ativo, o código será pedido em seguida.</p>
+      </div>
+      <label class="field">Senha
+        <input class="input" required name="password" type="password" autocomplete="current-password" minlength="7" placeholder="Sua senha">
+      </label>
+      <label class="field hidden" id="otpField">Código do autenticador
+        <input class="input" name="code" autocomplete="one-time-code" inputmode="numeric" maxlength="20" placeholder="000000 ou código de recuperação">
+      </label>
+      <label class="check"><input type="checkbox" name="remember"> Lembrar este dispositivo por 7 dias</label>
+      <button class="btn btn-primary" type="submit">Entrar</button>
+      <p id="loginError" class="form-error" role="alert"></p>
+      <a class="btn btn-ghost hidden" id="loginBack" href="#concursos">← Voltar aos concursos</a>
+    </form>
+  </div>
+
+  <!-- Application -->
+  <div id="appView" class="shell hidden">
+    <aside class="sidebar" aria-label="Navegação principal">
+      <a class="brand" href="#concursos">
+        <img src="/static/img/brand-symbol.png?v=__VERSION__" width="38" height="38" alt="">
+        <span><strong>__APP_NAME__</strong><small>Engenharia civil e mecânica</small></span>
+      </a>
+      <nav class="nav" id="nav"></nav>
+      <div class="sidebar-foot">
+        <span id="sideScan">Editais oficiais · varredura a cada 3h</span>
+        <a href="https://github.com/flemuh/radar-public-sector" target="_blank" rel="noopener noreferrer">Baseado em radar-public-sector (MIT) ↗</a>
+      </div>
+    </aside>
+
+    <header class="topbar" id="topbar">
+      <a class="brand" href="#concursos">
+        <img src="/static/img/brand-symbol.png?v=__VERSION__" width="34" height="34" alt="">
+        <span><strong>__APP_NAME__</strong><small>Engenharia civil e mecânica</small></span>
+      </a>
+      <div class="page-head">
+        <span class="eyebrow">Concursos públicos de engenharia civil e mecânica</span>
+        <h1 class="page-title" id="pageTitle">Concursos</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Alternar tema claro/escuro"></button>
+        <a class="btn btn-ghost visitor-only" id="loginBtn" href="#entrar"><span data-icon="shield"></span><span class="btn-label">Entrar</span></a>
+        <span class="badge badge-info admin-only">Admin</span>
+        <button class="btn btn-ghost admin-only" id="logoutBtn" type="button"><span data-icon="logout"></span><span class="btn-label">Sair</span></button>
+      </div>
+    </header>
+
+    <main id="main" class="content" tabindex="-1">
+      <section class="view" id="view-concursos" data-view="concursos" aria-labelledby="pageTitle"></section>
+      <section class="view hidden" id="view-alertas" data-view="alertas"></section>
+      <section class="view hidden" id="view-fontes" data-view="fontes"></section>
+      <section class="view hidden" id="view-configuracoes" data-view="configuracoes"></section>
+    </main>
+
+    <footer class="app-footer">
+      __APP_NAME__ · somente fontes oficiais · confira sempre o edital antes de se inscrever.
+    </footer>
+  </div>
+
+  <dialog id="editor" aria-labelledby="editorTitle"></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

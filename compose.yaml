@@ -1,0 +1,32 @@
+services:
+  concurso-radar:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      RADAR_DB: /data/radar.sqlite3
+      TZ: America/Sao_Paulo
+    volumes:
+      - concurso_radar_data:/data
+    ports:
+      - '127.0.0.1:8765:8765'
+    healthcheck:
+      test: ['CMD','python','-c',"import urllib.request;urllib.request.urlopen('http://127.0.0.1:8765/healthz',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  radar-worker:
+    build: .
+    command: ['python','-m','app.worker']
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      RADAR_DB: /data/radar.sqlite3
+      TZ: America/Sao_Paulo
+    volumes:
+      - concurso_radar_data:/data
+    depends_on:
+      concurso-radar:
+        condition: service_healthy
+volumes:
+  concurso_radar_data:

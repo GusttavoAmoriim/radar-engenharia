@@ -1,0 +1,38 @@
+# Fontes oficiais monitoradas pelo radar de concursos de engenharia civil e mecânica (nível superior).
+# Os catálogos das bancas abaixo trazem concursos de todas as áreas: o radar só promove os que têm
+# cargo de Engenheiro Civil/Mecânico (ou 'Engenharia Civil/Mecânica') no edital de abertura.
+# Campos: name (obrigatório), url (https, domínio oficial), mode, enabled, uf, agency.
+# mode: catalog (lista de concursos) · notice_index (índice de editais) · details (página de um edital) · watch (vigia mudanças da página)
+#       gazette_search (busca nos diários oficiais municipais pela API pública do Querido Diário; uf opcional filtra o estado)
+# Para desligar uma fonte sem apagá-la, use enabled: false.
+sources:
+  - name: Vunesp — inscrições abertas
+    url: https://www.vunesp.com.br/cabertas.html
+    agency: Vunesp
+  - name: Vunesp — próximos
+    url: https://www.vunesp.com.br/busca/concurso/proximo
+    agency: Vunesp
+  - name: FGV Conhecimento
+    url: https://conhecimento.fgv.br/concursos
+    agency: FGV
+  - name: Fundação Carlos Chagas
+    url: https://www.concursosfcc.com.br/
+    agency: FCC
+  - name: IBAM — editais
+    url: https://www.ibam-concursos.org.br/
+    mode: notice_index
+    agency: IBAM
+  - name: ABCP — concursos
+    url: https://abcp.selecao.net.br/
+    agency: ABCP
+  - name: Querido Diário — diários oficiais municipais
+    url: https://api.queridodiario.org.br/gazettes
+    mode: gazette_search
+    agency: Diários oficiais (Querido Diário)
+  # Exemplos para acrescentar (confirme o endereço oficial antes). 'details' acompanha UM edital já publicado;
+  # 'watch' vigia mudanças numa página. Uma banca nova de catálogo exige regra em app/collectors.py (looks_detail).
+  # - name: Prefeitura de Exemplo — concursos
+  #   url: https://www.prefeitura-exemplo.ma.gov.br/concursos
+  #   mode: watch
+  #   uf: MA
+  #   agency: Prefeitura de Exemplo

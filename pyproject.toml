@@ -1,0 +1,29 @@
+# Tool configuration only (the app is not packaged). Version lives in app/__init__.py.
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["static"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C4", "RUF"]
+ignore = [
+  "E501",    # long literals (URLs, seed notes) are kept intact
+  "RUF001",  # Portuguese/typographic characters in strings are intentional
+  "RUF002",
+  "RUF003",
+  "C408",    # dict(...) keeps seed/test records readable
+  "RUF005",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011", "SIM117", "RUF012"]
+"scripts/*" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+# Starlette suggests another HTTP client package for TestClient; the current one works and is pinned.
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient`"]
