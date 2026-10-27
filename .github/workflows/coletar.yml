@@ -50,7 +50,12 @@ jobs:
             echo "Sem mudanças no banco."
           else
             git commit -m "Atualiza dados $(date -u +%Y-%m-%dT%H:%MZ)"
-            git push
+            # Você pode ter enviado código novo enquanto a coleta rodava: traga-o antes de enviar o banco.
+            for tentativa in 1 2 3; do
+              git pull --rebase -X theirs origin main && git push && break
+              echo "Tentativa $tentativa falhou; repetindo"
+              sleep 5
+            done
           fi
 
       - uses: actions/configure-pages@v5
