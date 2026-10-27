@@ -460,7 +460,7 @@ def run_all(session=None):
                 failed += int(not ok)
         if failed:
             repo.add_alert(
-                'source-fail:' + clock.now()[:13],
+                'source-fail:' + clock.now()[:10] + ':' + str(failed),
                 'coverage',
                 f'{failed}/{len(SOURCES)} fontes oficiais falharam. Cobertura incompleta; veja Fontes.',
             )

@@ -11,7 +11,7 @@ COPY requirements-dev.txt pyproject.toml ./
 RUN pip install --no-cache-dir -r requirements-dev.txt
 COPY app/ ./app/
 COPY static/ ./static/
-COPY sources.yaml ./
+COPY sources.yaml portais.yaml ./
 COPY scripts/ ./scripts/
 COPY tests/ ./tests/
 CMD ["sh", "-c", "ruff check . && ruff format --check . && python -m pytest"]
@@ -21,7 +21,7 @@ FROM base AS runtime
 RUN useradd -r -u 10001 radar && mkdir -p /data && chown radar:radar /data
 COPY app/ ./app/
 COPY static/ ./static/
-COPY sources.yaml ./
+COPY sources.yaml portais.yaml ./
 USER radar
 EXPOSE 8765
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/healthz',timeout=3)" || exit 1
