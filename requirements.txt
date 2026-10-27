@@ -7,3 +7,4 @@ cryptography>=43,<47
 qrcode[pil]>=7.4,<9
 PyYAML>=6,<7
 tzdata>=2024.1
+fonttools>=4.50
